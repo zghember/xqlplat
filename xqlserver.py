@@ -31,9 +31,11 @@ while True:
         if msg['from'] in ipmap and msg['to'] in ipmap:
             usermap[ipmap[msg['from']]].other = usermap[ipmap[msg['to']]].addr
             usermap[ipmap[msg['to']]].other = usermap[ipmap[msg['from']]].addr
-            s.sendto('vsbeginok',addr)
+            s.sendto('{"vsres":"ok","from":"%s","to":"%s"}'%(msg['from'],msg['to']),addr)
+            s.sendto('{"vsres":"ok","from":"%s","to":"%s"}'%(msg['from'],msg['to']),ipmap[msg['to']])
             print 'vs begin',msg
         else:
+            s.sendto('{"vsres":"fail"}'%(msg['from'],msg['to']),addr)
             print 'vs can not begin',msg
 
     elif usermap.has_key(addrstr):

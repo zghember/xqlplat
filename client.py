@@ -1,6 +1,5 @@
-
 import socket
-import time,string
+import time,string,json
 import ConfigParser
 
 config = ConfigParser.ConfigParser()
@@ -20,7 +19,6 @@ loginok = 0
 print 'connecting to server...'
 while not loginok:
 	s.sendto('{"type":"login","username":"%s"}'%(user),server)
-	time.sleep(5)
 	data, addr = s.recvfrom(2048)
 	if 'loginok' in data:
 		loginok = 1
@@ -34,22 +32,18 @@ while True:
 		clienttype = raw_input("server(0) or client(1):")
 	if clienttype == '0':
 		print "waiting for fight..."
-		beginstatus = 1	
 	else:
 		to = raw_input("player2's name:")
 		print "trying to begin fight with %s"%to
-		times = 0
-		while not beginstatus:
-			s.sendto('{"type":"vsbegin","from":"%s","to":"%s"}'%(user,to),server)
-			time.sleep(5)
-			data, addr = s.recvfrom(2048)
-			if 'vsbeginok' in data:
-				beginstatus = 1
-			times = times + 1
-			if times == 5:
-				break
-	if beginstatus == 0:
-		print "can not begin fight with %s"%to
+		s.sendto('{"type":"vsbegin","from":"%s","to":"%s"}'%(user,to),server)
+	data, addr = s.recvfrom(2048)
+	if 'vsres' in data:
+		msg = json.loads(data)
+		if msg['vsres'] == 'ok':
+			beginstatus = 1
+			print "fight begin between %s and %s"%(msg['from'],msg['to'])
+		else:
+			print "%s is not online, failed to fight with %s"%(to,to)
 	while beginstatus:
 		data, addr = s.recvfrom(2048)
 		if '127.0' in addr[0]:
